@@ -1,0 +1,60 @@
+
+
+[program:gunicorn]
+directory=/home/ubuntu/josedamLit
+command=/home/ubuntu/env/bin/gunicorn --workers 3 --bind unix:/home/ubuntu/josedamLit/app.sock josedamLit.wsgi:application  
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/gunicorn/gunicorn.err.log
+stdout_logfile=/var/log/gunicorn/gunicorn.out.log
+
+[group:guni]
+programs:gunicorn
+
+
+Sample django.conf:
+
+server{
+
+	listen 80;
+	server_name 54.205.142.17;
+
+	
+	location / {
+
+		include proxy_params;
+		proxy_pass http://unix:/home/ubuntu/josedamLit/app.sock;
+
+	}
+
+}
+
+
+
+
+[Unit]
+Description=gunicorn socket
+
+[Socket]
+ListenStream=/run/gunicorn.sock
+
+[Install]
+WantedBy=sockets.target
+
+
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/JosepDam
+ExecStart=/home/ubuntun/JosepDam/env/bin/gunicorn \
+	  --access-logfile - \
+	  --workers 3 \
+	  josedamLit.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
